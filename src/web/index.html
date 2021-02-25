@@ -1,11 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Two Cats</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.15.1/dist/phaser-arcade-physics.min.js"></script>
 </head>
+
 <body>
-    
+
+    <script>
+        var config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    gravity: {
+                        y: 300
+                    },
+                    debug: false
+                }
+            },
+            scene: {
+                preload: preload,
+                create: create,
+                update: update
+            }
+        };
+
+        var game = new Phaser.Game(config);
+        var platforms;
+
+        function preload() {
+            this.load.image('sky', "resources/sky.png");
+            this.load.image('dirt', "resources/dirt.png");
+            this.load.spritesheet('fatso', 'resources/fatso.png', {
+                frameWidth: "100%",
+                frameHeight: "100%"
+            });
+        }
+
+        function create() {
+            this.add.image(0, 0, 'sky').setOrigin(0, 0)
+
+            platforms = this.physics.add.staticGroup();
+
+            platforms.create(0, 500, "dirt").setOrigin(0, 0).setScale(.5).refreshBody();
+
+            platforms.create(200, 300, "dirt").setScale(0.1).refreshBody();
+
+            player = this.physics.add.sprite(100, 100, 'fatso').setScale(.25);
+            player.setCollideWorldBounds(true);
+        }
+
+
+        ////////
+        //////// https://phaser.io/tutorials/making-your-first-phaser-3-game/part3
+        ////////
+
+        function update() {}
+    </script>
+
+
 </body>
+
 </html>
