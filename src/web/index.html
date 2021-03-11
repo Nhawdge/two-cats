@@ -74,7 +74,7 @@
             player.setCollideWorldBounds(true);
 
             this.physics.add.collider(player, platforms);
-            phaserGame = this;
+            console.log(player);
         }
 
 
@@ -96,41 +96,49 @@
 
             cursors = this.input.keyboard.createCursorKeys();
 
-            player;
-
             if (cursors.left.isDown) {
                 player.setVelocityX(-160);
-
                 // player.anims.play('left', true);
+
             } else if (cursors.right.isDown) {
                 player.setVelocityX(160);
-
                 // player.anims.play('right', true);
+
             } else {
                 player.setVelocityX(0);
                 // player.anims.play('turn');
             }
+            socket.emit("update", {
+                key: key,
+                x: player.x,
+                y: player.y
+            });
 
-            if (cursors.up.isDown && unit.body.touching.down) {
+            if (cursors.up.isDown && player.body.touching.down) {
                 player.setVelocityY(-330);
             }
+            //console.log(player.x, player.y);
         }
 
         socket.on('start', function (response) {
             console.log("start", response);
             //playerJoining = true;
             playerNumber = response.playerCount
-            if (playerNumber > 1 ) {
+            if (playerNumber > 1) {
                 playerJoining = true;
             }
             var game = new Phaser.Game(config);
         })
         socket.on("joined", (res) => {
-            if (res.playerCount > 1 ) {
+            if (res.playerCount > 1) {
                 playerJoining = true;
             }
             console.log("joined", res);
         });
+        socket.on('update', res => {
+            playerTwo.x = res.x;
+            playerTwo.y = res.y;
+        })
     </script>
 </body>
 

@@ -45,7 +45,19 @@ io.sockets.on('connection', function (socket) {
                 ]
             }
             socket.emit("start", GAMES[key].status);
-
+        }
+    })
+    socket.on("update", ({
+        key,
+        x,
+        y
+    }) => {
+        //console.log(key, x, y);
+        if (GAMES[key]) {
+            GAMES[key].players.filter(x => x.id != socket.id).forEach(s => s.emit("update", {
+                x,
+                y
+            }))
         }
     })
 
