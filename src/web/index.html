@@ -6,11 +6,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Two Cats</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.15.1/dist/phaser-arcade-physics.min.js"></script>
+    <script src="https://cdn.socket.io/3.1.1/socket.io.min.js"
+        integrity="sha384-gDaozqUvc4HTgo8iZjwth73C6dDDeOJsAgpxBcMpZYztUfjHXpzrpdrHRdVp8ySO" crossorigin="anonymous">
+    </script>
+
 </head>
 
 <body>
 
     <script>
+        const socket = io("http://localhost:2000");
+        var key = prompt("Game Key?")
+        socket.emit("join", key);
+
+        var playerNumber = 1;
+        var player;
+        var playerTwo;
+        var phaserGame;
+        var playerJoining;
+
         var config = {
             type: Phaser.AUTO,
             width: 800,
@@ -31,13 +45,16 @@
             }
         };
 
-        var game = new Phaser.Game(config);
         var platforms;
 
         function preload() {
             this.load.image('sky', "resources/sky.png");
             this.load.image('dirt', "resources/dirt.png");
             this.load.spritesheet('fatso', 'resources/fatso.png', {
+                frameWidth: "100%",
+                frameHeight: "100%"
+            });
+            this.load.spritesheet('mittens', 'resources/mittens.png', {
                 frameWidth: "100%",
                 frameHeight: "100%"
             });
@@ -52,8 +69,12 @@
 
             platforms.create(200, 300, "dirt").setScale(0.1).refreshBody();
 
-            player = this.physics.add.sprite(100, 100, 'fatso').setScale(.25);
+            var playerSprite = playerNumber == 1 ? "fatso" : "mittens"
+            player = this.physics.add.sprite(100, 100, playerSprite).setScale(.25);
             player.setCollideWorldBounds(true);
+
+            this.physics.add.collider(player, platforms);
+            phaserGame = this;
         }
 
 
@@ -61,10 +82,56 @@
         //////// https://phaser.io/tutorials/making-your-first-phaser-3-game/part3
         ////////
 
-        function update() {}
+        function update() {
+            if (playerJoining) {
+                playerJoining = false;
+
+                var playerTwoSprite = playerNumber == 2 ? "fatso" : "mittens";
+                playerTwo = this.physics.add.sprite(125, 125, playerTwoSprite).setScale(.25);
+                playerTwo.setCollideWorldBounds(true);
+
+                this.physics.add.collider(playerTwo, platforms);
+                socket.emit("joined");
+            }
+
+            cursors = this.input.keyboard.createCursorKeys();
+
+            player;
+
+            if (cursors.left.isDown) {
+                player.setVelocityX(-160);
+
+                // player.anims.play('left', true);
+            } else if (cursors.right.isDown) {
+                player.setVelocityX(160);
+
+                // player.anims.play('right', true);
+            } else {
+                player.setVelocityX(0);
+                // player.anims.play('turn');
+            }
+
+            if (cursors.up.isDown && unit.body.touching.down) {
+                player.setVelocityY(-330);
+            }
+        }
+
+        socket.on('start', function (response) {
+            console.log("start", response);
+            //playerJoining = true;
+            playerNumber = response.playerCount
+            if (playerNumber > 1 ) {
+                playerJoining = true;
+            }
+            var game = new Phaser.Game(config);
+        })
+        socket.on("joined", (res) => {
+            if (res.playerCount > 1 ) {
+                playerJoining = true;
+            }
+            console.log("joined", res);
+        });
     </script>
-
-
 </body>
 
 </html>
